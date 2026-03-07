@@ -1,35 +1,86 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { Fragment } from "react/jsx-runtime";
 
-function App() {
-  const [count, setCount] = useState(0)
+type HeaderProps = {
+  description?: string;
+  title: string;
+  onClick: () => void;
+};
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+function Divider() {
+  return <hr />;
 }
 
-export default App
+function Header({ description, title, onClick }: HeaderProps) {
+  return (
+    <div>
+      <h1 className="text-8xl">{title}</h1>
+      <p>{description}</p>
+
+      <button onClick={onClick}>Click me</button>
+
+      <Divider />
+    </div>
+  );
+}
+
+function Counter() {
+  const [counter, setCounter] = useState(0);
+
+  function increment() {
+    setCounter(counter + 1);
+  }
+
+  return (
+    <div>
+      {counter}
+
+      <button onClick={increment}>+</button>
+    </div>
+  );
+}
+
+function GoToFileInput() {
+  const [input, setInput] = useState("");
+
+  function onChange(event) {
+    setInput(event.target.value);
+  }
+
+  function onClickGoToFile() {
+    alert(input);
+  }
+
+  return (
+    <div>
+      <h6>{input}</h6>
+
+      <input
+        id="goToFile"
+        name="goToFile"
+        placeholder="Go to file"
+        onChange={onChange}
+        value={input}
+      ></input>
+
+      <button onClick={onClickGoToFile}>Search</button>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Fragment>
+      <Header
+        title="My first component"
+        onClick={function () {
+          alert("Cliquei no header");
+        }}
+      />
+
+      {/* <Counter /> */}
+
+      <GoToFileInput />
+    </Fragment>
+  );
+}
