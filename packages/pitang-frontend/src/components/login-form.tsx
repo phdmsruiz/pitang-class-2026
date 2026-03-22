@@ -35,12 +35,11 @@ export function LoginForm({
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Login to your account</h1>
-          <p className="text-sm text-balance text-muted-foreground">
-            Enter your username below to login to your account
-          </p>
+          <p className="text-zinc-500 text-sm font-bold">The only store you need.</p>
+          
         </div>
         <Field>
-          <FieldLabel htmlFor="username">username</FieldLabel>
+          <FieldLabel htmlFor="username">User</FieldLabel>
           <Input
             id="username"
             name="username"

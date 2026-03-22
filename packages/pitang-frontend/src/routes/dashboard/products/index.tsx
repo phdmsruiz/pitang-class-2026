@@ -102,6 +102,7 @@ function ProductsPage() {
     <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Products</h1>
+        <p className="text-zinc-500 text-sm font-bold">The only store you need.</p>
         <div className="flex gap-2">
           <Button
             variant={viewMode === "grid" ? "default" : "outline"}
