@@ -1,9 +1,8 @@
-import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -15,19 +14,42 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Fragment } from "react/jsx-runtime";
+import type { LoggedUser } from "@/types";
 
 export const Route = createFileRoute("/dashboard")({
+  beforeLoad: () => {
+    const token = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("@pitang/accessToken="))
+      ?.split("=")[1];
+
+    if (!token) throw redirect({ to: "/login" });
+  },
+  loader: async (): Promise<LoggedUser> => {
+    const token = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("@pitang/accessToken="))
+      ?.split("=")[1];
+
+    const response = await fetch("https://dummyjson.com/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) throw redirect({ to: "/login" });
+
+    return await response.json();
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const loggedUser = Route.useLoaderData();
   const location = useLocation();
-
   const paths = location.pathname.split("/").filter(Boolean);
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar loggedUser={loggedUser} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
@@ -36,14 +58,12 @@ function RouteComponent() {
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
             />
-
             <Breadcrumb>
               <BreadcrumbList>
                 {paths.map((path, index) => {
                   const lastPath = index + 1 === paths.length;
-
                   return (
-                    <Fragment>
+                    <Fragment key={path}>
                       <BreadcrumbItem>
                         <BreadcrumbPage
                           className={`capitalize ${lastPath ? "font-bold" : ""}`}
@@ -51,7 +71,6 @@ function RouteComponent() {
                           {path}
                         </BreadcrumbPage>
                       </BreadcrumbItem>
-
                       {!lastPath && (
                         <BreadcrumbSeparator className="hidden md:block" />
                       )}
@@ -62,7 +81,6 @@ function RouteComponent() {
             </Breadcrumb>
           </div>
         </header>
-
         <Outlet />
       </SidebarInset>
     </SidebarProvider>

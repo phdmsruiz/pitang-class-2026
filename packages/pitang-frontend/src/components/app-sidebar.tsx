@@ -1,5 +1,4 @@
 import * as React from "react";
-
 import { NavProjects } from "@/components/nav-projects";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
@@ -13,36 +12,26 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { FrameIcon, PieChartIcon, MapIcon, TerminalIcon, PackageIcon } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
+import type { LoggedUser } from "@/types";
 
 const data = {
-  navMain: [],
   navSecondary: [],
   projects: [
-    {
-      name: "Dashboard",
-      url: "/dashboard",
-      icon: <PieChartIcon />,
-    },
-    {
-      name: "Products",
-      url: "/dashboard/products",
-      icon: <PackageIcon />,
-    },
-    {
-      name: "Users",
-      url: "/dashboard/users",
-      icon: <MapIcon />,
-    },
-    {
-      name: "Todos",
-      url: "/dashboard/todos",
-      icon: <FrameIcon />,
-    },
+    { name: "Dashboard", url: "/dashboard", icon: <PieChartIcon /> },
+    { name: "Products", url: "/dashboard/products", icon: <PackageIcon /> },
+    { name: "Users", url: "/dashboard/users", icon: <MapIcon /> },
+    { name: "Todos", url: "/dashboard/todos", icon: <FrameIcon /> },
   ],
 };
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { loggedUser, handleLogout } = useAuth();
+
+export function AppSidebar({
+  loggedUser,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { loggedUser: LoggedUser }) {
+  function handleLogout() {
+    document.cookie = "@pitang/accessToken=; path=/; Max-Age=0";
+    window.location.href = "/login";
+  }
 
   return (
     <Sidebar variant="inset" {...props}>

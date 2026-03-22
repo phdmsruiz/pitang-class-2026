@@ -18,19 +18,27 @@ export function useAuth() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = getCookie("@pitang/accessToken");
+    if (!token) return; // ✅ Don't fetch if there's no token
+
     async function getAuthenticatedUser() {
-      const response = await fetch("https://dummyjson.com/auth/me", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${getCookie("@pitang/accessToken")}`,
-        },
-      });
+      try {
+        const response = await fetch("https://dummyjson.com/auth/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${getCookie("@pitang/accessToken")}`,
+          },
+        });
 
-      if (!response.ok) {
-        return toast.error("Something went wrong");
+        if (!response.ok) {
+          toast.error("Session expired, please log in again");
+          return;
+        }
+
+        setLoggedUser(await response.json());
+      } catch {
+        toast.error("Could not reach the server");
       }
-
-      setLoggedUser(await response.json());
     }
 
     getAuthenticatedUser();
@@ -38,8 +46,7 @@ export function useAuth() {
 
   async function handleLogout() {
     document.cookie = "@pitang/accessToken=; path=/; Max-Age=0";
-
-    navigate({ to: "/login" });
+    navigate({ to: "/login" }); 
   }
 
   async function handleLogin(
@@ -48,27 +55,29 @@ export function useAuth() {
   ) {
     event.preventDefault();
 
-    const response = await fetch(`${baseURL}/auth/login`, {
-      body: JSON.stringify({
-        expiresInMins: 30,
-        username: data.username,
-        password: data.password,
-      }),
-      headers: { "Content-Type": "application/json" },
-      method: "POST",
-    });
+    try {
+      const response = await fetch(`${baseURL}/auth/login`, {
+        body: JSON.stringify({
+          expiresInMins: 30,
+          username: data.username,
+          password: data.password,
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
 
-    const json = await response.json();
+      const json = await response.json();
 
-    if (!response.ok) {
-      return toast.error(json.message);
+      if (!response.ok) {
+        return toast.error(json.message);
+      }
+
+      toast.success("Welcome...");
+      document.cookie = `@pitang/accessToken=${json.accessToken}; path=/; Max-Age=86400`;
+      navigate({ to: "/dashboard" });
+    } catch {
+      toast.error("Could not reach the server");
     }
-
-    toast.success("Welcome...");
-
-    document.cookie = `@pitang/accessToken=${json.accessToken}; path=/; Max-Age=86400`;
-
-    navigate({ to: "/dashboard" });
   }
 
   return {
