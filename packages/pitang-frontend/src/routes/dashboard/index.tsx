@@ -1,12 +1,31 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useAuth } from "@/hooks/use-auth";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard/")({
+  loader: async () => {
+    const token = document.cookie
+      .split("; ")
+      .find((c) => c.startsWith("@pitang/accessToken="))
+      ?.split("=")[1];
+
+    const response = await fetch("https://dummyjson.com/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) throw new Error("Failed to fetch user");
+
+    return await response.json();
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { handleLogout, loggedUser } = useAuth();
+  const loggedUser = Route.useLoaderData();
+  const router = useRouter();
+
+  function handleLogout() {
+    document.cookie = "@pitang/accessToken=; path=/; Max-Age=0";
+    router.navigate({ to: "/login" });
+  }
 
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-950 flex flex-col items-center justify-center gap-10 px-6">

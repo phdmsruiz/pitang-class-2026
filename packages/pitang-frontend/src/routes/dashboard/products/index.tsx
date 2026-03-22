@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { GridIcon, ListIcon } from "lucide-react";
 
 import { fetchProducts } from "@/lib/api";
@@ -33,43 +33,33 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/dashboard/products/")({
+  loaderDeps: ({ search }) => ({ page: (search as { page?: number }).page ?? 1 }),
+  loader: async ({ deps: { page } }) => {
+    const limit = 12;
+    return await fetchProducts(page, limit);
+  },
   component: ProductsPage,
 });
 
 function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const { products, total } = Route.useLoaderData();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch() as { page?: number };
+  const page = search.page ?? 1;
   const limit = 12;
+  const totalPages = Math.ceil(total / limit);
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
-  useEffect(() => {
-    async function loadProducts() {
-      setLoading(true);
-      try {
-        const data = await fetchProducts(page, limit);
-        setProducts(data.products);
-        setTotal(data.total);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadProducts();
-  }, [page]);
-
-  const totalPages = Math.ceil(total / limit);
+  const setPage = (newPage: number) => {
+    navigate({ search: { page: newPage } });
+  };
 
   const getPageNumbers = () => {
     const pages: (number | "ellipsis")[] = [];
     const maxVisible = 5;
 
     if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       if (page <= 3) {
         for (let i = 1; i <= 4; i++) pages.push(i);
@@ -90,19 +80,10 @@ function ProductsPage() {
     return pages;
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">Loading products...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Products</h1>
-        <p className="text-zinc-500 text-sm font-bold">The only store you need.</p>
         <div className="flex gap-2">
           <Button
             variant={viewMode === "grid" ? "default" : "outline"}
@@ -123,7 +104,7 @@ function ProductsPage() {
 
       {viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {products.map((product) => (
+          {products.map((product: Product) => (
             <Card key={product.id} className="overflow-hidden">
               <div className="aspect-square relative overflow-hidden">
                 <img
@@ -178,7 +159,7 @@ function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
+            {products.map((product: Product) => (
               <TableRow key={product.id}>
                 <TableCell>
                   <img
@@ -203,10 +184,8 @@ function ProductsPage() {
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className={
-                page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"
-              }
+              onClick={() => setPage(Math.max(1, page - 1))}
+              className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
             />
           </PaginationItem>
           {getPageNumbers().map((pageNum, idx) =>
@@ -228,12 +207,8 @@ function ProductsPage() {
           )}
           <PaginationItem>
             <PaginationNext
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className={
-                page === totalPages
-                  ? "pointer-events-none opacity-50"
-                  : "cursor-pointer"
-              }
+              onClick={() => setPage(Math.min(totalPages, page + 1))}
+              className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
             />
           </PaginationItem>
         </PaginationContent>
