@@ -66,7 +66,7 @@ export function useAuth() {
 
     toast.success("Welcome...");
 
-    document.cookie = `@pitang/accessToken=${json.accessToken}; path=/; Max-Age=86400`;
+    document.cookie = `@pitang/accessToken=${json.token}; path=/; Max-Age=86400`;
 
     navigate({ to: "/dashboard" });
   }
