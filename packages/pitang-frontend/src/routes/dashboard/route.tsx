@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
@@ -17,7 +17,17 @@ import {
 import { Fragment } from "react/jsx-runtime";
 
 export const Route = createFileRoute("/dashboard")({
-  component: RouteComponent,
+    beforeLoad: () => {
+      const token = document.cookie
+        .split("; ")
+        .find((c) => c.startsWith("@pitang/accessToken="))
+        ?.split("=")[1];
+  
+        if (!token) {
+          throw redirect ({to: "/login"}); 
+        }
+    },
+  component: RouteComponent
 });
 
 function RouteComponent() {
